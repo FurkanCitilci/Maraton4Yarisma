@@ -6,11 +6,12 @@ import com.furkancitilci.exception.ErrorType;
 import com.furkancitilci.exception.YarismaException;
 import com.furkancitilci.repository.entity.Oyuncu;
 import com.furkancitilci.repository.entity.Soru;
+import com.furkancitilci.service.OyuncuService;
 import com.furkancitilci.service.SoruService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
+
 
 import java.util.Optional;
 
@@ -22,6 +23,7 @@ import static com.furkancitilci.constants.RestEndPoints.*;
 public class SoruController {
 
     private final SoruService soruService;
+    private final OyuncuService oyuncuService;
 
     @PostMapping(SORUOLUSTUR)
     @CrossOrigin(origins = "*")
@@ -42,13 +44,27 @@ public class SoruController {
     }
 
     @GetMapping(CEVAPVER)
-    public ResponseEntity<Soru> cevapver(String cevap){
+    public boolean cevapver(String cevap, Long oyuncuid){
 
         //cevap alıyorum doğru cevaba gönderiyorum
-        Optional<Soru> soru = soruService.findByDogruCevap(cevap);
 
-        if (soru.isEmpty()) throw new YarismaException(ErrorType.VERI_BULUNAMADI);
-        return ResponseEntity.ok(soru.get());
+        Oyuncu oyuncu=null;
+        if (oyuncuid==null){
+            oyuncu=oyuncu.builder().build();
+
+        }else {
+            oyuncu=oyuncuService.findById(oyuncuid).get();
+            Optional<Soru> soru = soruService.findByDogruCevap(cevap);
+            if (soru.isEmpty()){
+                throw new YarismaException(ErrorType.VERI_BULUNAMADI);
+
+            }
+            return false;
+        }
+        return true;
+
+
+
 
     }
 }
